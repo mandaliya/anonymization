@@ -1,14 +1,12 @@
 import streamlit as st
-from presidio_analyzer import AnalyzerEngine, RecognizerResult
-from presidio_anonymizer import AnonymizerEngine, AnonymizerConfig
+from presidio_analyzer import AnalyzerEngine
+from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
-import os
 
 # Initialize Presidio engines
 analyzer = AnalyzerEngine()
 anonymizer = AnonymizerEngine()
 
-# Streamlit app title and description
 st.title("Advanced PII Anonymization with Presidio")
 st.write("Enter text to anonymize sensitive information. Select PII entities and anonymization methods:")
 
@@ -38,13 +36,12 @@ if st.button("Anonymize"):
         # Analyze text for selected PII entities
         results = analyzer.analyze(text=user_input, entities=selected_entities, language='en')
 
-        # Create anonymization configuration
-        config = AnonymizerConfig()
-        for result in results:
-            config.add_operator(result.entity_type, anonymization_config[selected_method])
-
         # Anonymize detected PII entities
-        anonymized_result = anonymizer.anonymize(text=user_input, analyzer_results=results, anonymizer_config=config)
+        anonymized_result = anonymizer.anonymize(
+            text=user_input,
+            analyzer_results=results,
+            operators={entity: anonymization_config[selected_method] for entity in selected_entities}
+        )
 
         st.subheader("Anonymized Text:")
         st.write(anonymized_result.text)
